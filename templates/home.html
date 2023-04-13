@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% set activePage = "login" %}
+{% block content %}
+  <section>
+    <h2>Título da seção</h2>
+    <p>Hello, {{ user_name }}! You're logged in! Email: {{ email }}</p>
+    <div><p>Google Profile Picture:</p>
+    <img src="{{ profile }}" alt="Google profile pic"></img></div>
+    <a class="button" href="/logout">Logout</a>
+  </section>
+{% endblock %}

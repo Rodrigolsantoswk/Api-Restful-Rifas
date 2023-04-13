@@ -1,10 +1,10 @@
 # Python standard libraries
 import json
 import os
+from os import walk, path
 import sqlite3
-
 # Third-party libraries
-from flask import Flask, redirect, request, url_for
+from flask import Flask, redirect, request, url_for, render_template
 from flask_login import (
     LoginManager,
     current_user,
@@ -14,11 +14,9 @@ from flask_login import (
 )
 from oauthlib.oauth2 import WebApplicationClient
 import requests
-
 # Internal imports
 from db import init_db_command
 from user import User
-
 from dotenv import load_dotenv
 load_dotenv('.env')
 
@@ -32,6 +30,7 @@ GOOGLE_DISCOVERY_URL = (
 
 # Flask app setup
 app = Flask(__name__)
+app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.secret_key = os.environ.get("cccaec959c992b1641facd4af59af72a3ec58abdbe20c9ba658079bd6ab94ba5") or os.urandom(24)
 
 # User session management setup
@@ -59,22 +58,20 @@ def load_user(user_id):
 @app.route("/")
 def index():
     if current_user.is_authenticated:
-        return (
-            "<p>Hello, {}! You're logged in! Email: {}</p>"
-            "<div><p>Google Profile Picture:</p>"
-            '<img src="{}" alt="Google profile pic"></img></div>'
-            '<a class="button" href="/logout">Logout</a>'.format(
-                current_user.name, current_user.email, current_user.profile_pic
-            )
-        )
+        return render_template('home.html',
+                               title='AppRifas - Página Inicial',
+                               user_name=current_user.name,
+                               email=current_user.email,
+                               profile=current_user.profile_pic)
     else:
-        return '<a class="button" href="/login">Google Login</a>'
+        return render_template('login.html')
 
 
 def get_google_provider_cfg():
     return requests.get(GOOGLE_DISCOVERY_URL).json()
 
 
+# noinspection PyNoneFunctionAssignment
 @app.route("/login")
 def login():
     # Find out what URL to hit for Google login
@@ -100,7 +97,7 @@ def callback():
     # things on behalf of a user
     google_provider_cfg = get_google_provider_cfg()
     token_endpoint = google_provider_cfg["token_endpoint"]
-    # Prepare and send a request to get tokens! Yay tokens!
+    # Prepare and send a request to get tokens! Yay, tokens!
     token_url, headers, body = client.prepare_token_request(
         token_endpoint,
         authorization_response=request.url,
@@ -162,7 +159,3 @@ def logout():
 
 if __name__ == "__main__":
     app.run(ssl_context="adhoc")
-
-
-
-
